@@ -1,4 +1,5 @@
 .env
-examops-deploy.zip
+*.zip
+deploy*.zip
 __pycache__/
 *.pyc
