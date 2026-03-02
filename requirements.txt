@@ -16,3 +16,4 @@ botbuilder-core>=4.15.0
 botbuilder-schema>=4.15.0
 botframework-connector>=4.15.0
 lxml>=5.0.0
+foundry-local-sdk>=0.1.0

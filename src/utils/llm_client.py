@@ -4,13 +4,14 @@ LLMClient — Unified LLM client with multi-backend primary + GitHub Models fall
 Selects the primary backend via the LLM_BACKEND env var:
   "foundry" (default) — Azure AI Foundry → Phi-3.5-mini-instruct
   "github"            — GitHub Models → Phi-3.5-mini-instruct (requires GITHUB_TOKEN only)
-  "ollama"            — Ollama → Phi-4 (fully offline, OpenAI-compatible API)
+  "foundry-local"     — Foundry Local → Phi-3.5-mini (on-device, OpenAI-compat)
   "azure"             — Azure OpenAI → GPT-4o-mini (legacy)
 
 GitHub Models stays as a last-resort 429 fallback for all backends.
 
 Environment variables:
-    LLM_BACKEND                — "foundry" | "github" | "ollama" | "azure" (default: foundry)
+    LLM_BACKEND                — "foundry" | "github" | "foundry-local" | "azure"
+                                 (default: foundry)
 
     # Foundry backend (default):
     AZURE_FOUNDRY_ENDPOINT     — Azure AI Foundry endpoint
@@ -20,9 +21,8 @@ Environment variables:
     # GitHub Models backend:
     GITHUB_MODELS_MODEL        — model name (default: Phi-3.5-mini-instruct)
 
-    # Ollama backend:
-    OLLAMA_BASE_URL            — Ollama OpenAI-compat base URL (default: http://localhost:11434/v1)
-    OLLAMA_MODEL               — Ollama model tag (default: phi4)
+    # Foundry Local backend:
+    FOUNDRY_LOCAL_MODEL        — model alias (default: phi-3.5-mini)
 
     # Azure backend (legacy):
     AZURE_OPENAI_ENDPOINT      — Azure OpenAI endpoint
@@ -78,12 +78,15 @@ class LLMClient:
                 "GITHUB_MODELS_MODEL", "Phi-3.5-mini-instruct"
             )
 
-        elif backend == "ollama":
+        elif backend == "foundry-local":
+            from foundry_local import FoundryLocalManager
+            alias = os.getenv("FOUNDRY_LOCAL_MODEL", "phi-3.5-mini")
+            self._foundry_manager = FoundryLocalManager(alias)
             self._primary = AsyncOpenAI(
-                base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
-                api_key="ollama",   # SDK requires non-empty; Ollama ignores it
+                base_url=self._foundry_manager.endpoint,
+                api_key=self._foundry_manager.api_key,
             )
-            self._primary_model = os.getenv("OLLAMA_MODEL", "phi4")
+            self._primary_model = self._foundry_manager.get_model_info(alias).id
 
         elif backend == "foundry":
             self._primary = AsyncAzureOpenAI(

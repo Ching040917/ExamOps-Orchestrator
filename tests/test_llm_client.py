@@ -46,6 +46,25 @@ RateLimitError = _openai_stub.RateLimitError  # re-export for test use
 
 
 # ---------------------------------------------------------------------------
+# Module-level foundry_local stub
+# ---------------------------------------------------------------------------
+
+def _install_foundry_local_stub():
+    stub = types.ModuleType("foundry_local")
+    _manager_instance = MagicMock()
+    _manager_instance.endpoint = "http://localhost:5272/v1"
+    _manager_instance.api_key = "notneeded"
+    model_info = MagicMock(id="phi-3.5-mini-onnx-cpu")
+    _manager_instance.get_model_info.return_value = model_info
+    stub.FoundryLocalManager = MagicMock(return_value=_manager_instance)
+    sys.modules["foundry_local"] = stub
+    return stub, _manager_instance
+
+
+_foundry_local_stub, _foundry_manager_mock = _install_foundry_local_stub()
+
+
+# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
@@ -161,45 +180,36 @@ def test_foundry_backend_init(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# Test: Ollama backend init
+# Test: Foundry Local backend init
 # ---------------------------------------------------------------------------
 
-def test_ollama_backend_init(monkeypatch):
-    """LLM_BACKEND=ollama → _primary_model is phi4 and uses AsyncOpenAI."""
-    monkeypatch.setenv("LLM_BACKEND", "ollama")
-    monkeypatch.delenv("OLLAMA_MODEL", raising=False)
-    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+def test_foundry_local_backend_init(monkeypatch):
+    """LLM_BACKEND=foundry-local → uses FoundryLocalManager, endpoint from manager."""
+    monkeypatch.setenv("LLM_BACKEND", "foundry-local")
+    monkeypatch.delenv("FOUNDRY_LOCAL_MODEL", raising=False)
 
-    # Track which constructor was called last
     calls = []
     original_AsyncOpenAI = _openai_stub.AsyncOpenAI
-    original_AsyncAzureOpenAI = _openai_stub.AsyncAzureOpenAI
 
     class _TrackingOpenAI(MagicMock):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             calls.append(("AsyncOpenAI", kwargs))
 
-    class _TrackingAzureOpenAI(MagicMock):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            calls.append(("AsyncAzureOpenAI", kwargs))
-
     _openai_stub.AsyncOpenAI = _TrackingOpenAI
-    _openai_stub.AsyncAzureOpenAI = _TrackingAzureOpenAI
 
     try:
         from src.utils.llm_client import LLMClient
         client = LLMClient()
 
-        assert client._primary_model == "phi4"
-        # First constructor call for _primary should be AsyncOpenAI (not Azure)
+        assert client._primary_model == "phi-3.5-mini-onnx-cpu"
         primary_calls = [c for c in calls if c[0] == "AsyncOpenAI"]
         assert len(primary_calls) >= 1
-        assert primary_calls[0][1].get("base_url") == "http://localhost:11434/v1"
+        assert primary_calls[0][1].get("base_url") == "http://localhost:5272/v1"
+        # Manager should be stored to keep service alive
+        assert hasattr(client, "_foundry_manager")
     finally:
         _openai_stub.AsyncOpenAI = original_AsyncOpenAI
-        _openai_stub.AsyncAzureOpenAI = original_AsyncAzureOpenAI
 
 
 # ---------------------------------------------------------------------------

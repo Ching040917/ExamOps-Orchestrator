@@ -527,7 +527,7 @@
       <div class="card">
         <div class="card-title">Step 1 — Upload Syllabus</div>
         <div class="card-desc">
-          Upload your course syllabus (.docx or .pdf) or paste a SharePoint URL.
+          Upload your course syllabus (.docx or .pdf), paste a SharePoint URL, or paste syllabus text directly.
           The AI will extract Course Learning Outcomes (CLOs) and Programme Learning Outcomes (PLOs).
         </div>
 
@@ -550,6 +550,20 @@
         <div class="input-row">
           <input type="url" class="input-text" id="spUrl1"
                  placeholder="Paste SharePoint URL…">
+        </div>
+
+        <div class="or-divider">or</div>
+
+        <div style="margin-top:8px">
+          <label style="font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:6px">
+            Paste syllabus text
+          </label>
+          <textarea id="syllabusText"
+            rows="8"
+            style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #d0d7de;
+                   border-radius:6px;font-size:0.85rem;resize:vertical;font-family:inherit;
+                   line-height:1.5;"
+            placeholder="Paste your syllabus here (CLOs, PLOs, course description…)"></textarea>
         </div>
 
         <div id="alert1" class="alert"></div>
@@ -855,9 +869,10 @@ async function submitStep1() {
   clearAlert('alert1');
   const fileInput = document.getElementById('fileInput1');
   const spUrl = document.getElementById('spUrl1').value.trim();
+  const rawText = document.getElementById('syllabusText').value.trim();
 
-  if (!fileInput.files.length && !spUrl) {
-    showAlert('alert1', '⚠ Please upload a file or paste a SharePoint URL.', 'error');
+  if (!fileInput.files.length && !spUrl && !rawText) {
+    showAlert('alert1', '⚠ Please upload a file, paste a SharePoint URL, or paste syllabus text.', 'error');
     return;
   }
 
@@ -873,8 +888,10 @@ async function submitStep1() {
     const form = new FormData();
     if (fileInput.files.length) {
       form.append('file', fileInput.files[0]);
-    } else {
+    } else if (spUrl) {
       form.append('sharepoint_url', spUrl);
+    } else {
+      form.append('raw_text', rawText);
     }
     if (sessionId) form.append('session_id', sessionId);
 

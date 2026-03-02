@@ -73,36 +73,44 @@ class SyllabusAgent:
         self._llm = LLMClient()
 
     async def process(
-        self, file_bytes: bytes, filename: str, session_id: str
+        self,
+        file_bytes: bytes,
+        filename: str,
+        session_id: str,
+        raw_text: str = "",
     ) -> Dict[str, List[str]]:
         """
-        Extract CLO/PLO from file bytes and update the session.
+        Extract CLO/PLO from file bytes (or raw pasted text) and update the session.
 
         Args:
-            file_bytes:  Raw bytes of the uploaded syllabus.
+            file_bytes:  Raw bytes of the uploaded syllabus (ignored when raw_text given).
             filename:    Original filename (used to detect .docx vs .pdf).
             session_id:  Session ID for storing results.
+            raw_text:    Pasted syllabus text (takes priority over file_bytes).
 
         Returns:
             dict with keys ``clo_list`` and ``plo_list``.
         """
-        fname_lower = filename.lower()
-        if fname_lower.endswith(".docx"):
-            text = _extract_text_from_docx(file_bytes)
-        elif fname_lower.endswith(".pdf"):
-            text = _extract_text_from_pdf(file_bytes)
+        if raw_text:
+            text_excerpt = raw_text[:12000]
         else:
-            try:
+            fname_lower = filename.lower()
+            if fname_lower.endswith(".docx"):
                 text = _extract_text_from_docx(file_bytes)
-            except Exception:
-                text = file_bytes.decode("utf-8", errors="replace")
+            elif fname_lower.endswith(".pdf"):
+                text = _extract_text_from_pdf(file_bytes)
+            else:
+                try:
+                    text = _extract_text_from_docx(file_bytes)
+                except Exception:
+                    text = file_bytes.decode("utf-8", errors="replace")
 
-        if not text.strip():
-            logger.warning("No text extracted from syllabus %s", filename)
-            return {"clo_list": [], "plo_list": []}
+            if not text.strip():
+                logger.warning("No text extracted from syllabus %s", filename)
+                return {"clo_list": [], "plo_list": []}
 
-        # Trim to fit model context
-        text_excerpt = text[:12000]
+            # Trim to fit model context
+            text_excerpt = text[:12000]
 
         result = await self._call_llm(text_excerpt)
         await self._update_session(session_id, result)

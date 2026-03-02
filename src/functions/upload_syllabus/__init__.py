@@ -10,6 +10,7 @@ Returns: {session_id, clo_list, plo_list}
 
 import json
 import logging
+import os
 import uuid
 
 import azure.functions as func
@@ -43,11 +44,31 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
         req.form.get("sharepoint_url") or req.params.get("sharepoint_url")
     )
     file_data = req.files.get("file")
+    raw_text = (req.form.get("raw_text") or "").strip()
 
     if file_data:
         file_bytes = file_data.read()
         filename = file_data.filename or filename
     elif sharepoint_url:
+        # Pre-check Graph API credentials before attempting download
+        if not all([
+            os.environ.get("GRAPH_TENANT_ID"),
+            os.environ.get("GRAPH_CLIENT_ID"),
+            os.environ.get("GRAPH_CLIENT_SECRET"),
+        ]):
+            return func.HttpResponse(
+                json.dumps({
+                    "error": (
+                        "SharePoint URL requires Microsoft Graph API credentials. "
+                        "Set GRAPH_TENANT_ID, GRAPH_CLIENT_ID, and GRAPH_CLIENT_SECRET "
+                        "in your .env or Azure Function App Settings. "
+                        "Alternatively, upload a file or paste your syllabus text."
+                    )
+                }),
+                status_code=400,
+                mimetype="application/json",
+                headers=_CORS_HEADERS,
+            )
         try:
             from src.agents.file_handler_agent.file_handler_agent import FileHandlerAgent
             fh = FileHandlerAgent()
@@ -61,15 +82,18 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
                 mimetype="application/json",
                 headers=_CORS_HEADERS,
             )
+    elif raw_text:
+        file_bytes = b""
+        filename = "syllabus_pasted.txt"
     else:
         return func.HttpResponse(
-            json.dumps({"error": "Provide either 'file' or 'sharepoint_url'."}),
+            json.dumps({"error": "Provide 'file', 'sharepoint_url', or 'raw_text'."}),
             status_code=400,
             mimetype="application/json",
             headers=_CORS_HEADERS,
         )
 
-    if not file_bytes:
+    if not file_bytes and not raw_text:
         return func.HttpResponse(
             json.dumps({"error": "File is empty."}),
             status_code=400,
@@ -95,7 +119,7 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
         from src.agents.syllabus_agent.syllabus_agent import SyllabusAgent
         agent = SyllabusAgent()
-        result = await agent.process(file_bytes, filename, session_id)
+        result = await agent.process(file_bytes, filename, session_id, raw_text=raw_text)
     except Exception as exc:
         logger.exception("SyllabusAgent failed for session %s", session_id)
         return func.HttpResponse(
