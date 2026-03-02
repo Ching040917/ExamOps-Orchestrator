@@ -1,129 +1,128 @@
-# Backend Tasks
+# Backend Tasks — 5-Step Pipeline
 
-## Task: Implement CoordinatorAgent
-**File**: `src/agents/coordinator_agent/coordinator_agent.py`
-**Goal**: Single-entry orchestrator that drives the full pipeline (download → format → validate → diff → save) and returns a job result dict.
+## Task: session-store
+**File**: `src/session/session_store.py`
+**Goal**: Azure Table Storage CRUD for ExamSession model with full schema from claude.md.
 **Steps**:
-1. Define `JobState` dataclass with `job_id`, `user_id`, `status`, `file_url`, `created_at`, `updated_at`.
-2. Implement `CoordinatorAgent` class with `async def process_job(job_id, user_id, file_url) -> dict`.
-3. Call agents in sequence: `FileHandlerAgent` → `FormattingEngineAgent` → `DiffGeneratorAgent`.
-4. Handle error cases: corrupted file, template not found, LLM timeout (fallback to rule-based only).
-5. Return `{status, compliance_score, formatted_url, diff_url, onedrive_link, summary}`.
-6. Write `coordinator_agent.md` spec doc.
-**Result file**: `tasks/results/coordinator-agent.md`
+1. Define `ExamSession` dataclass matching claude.md schema.
+2. Implement `SessionStore` with `create_session`, `get_session`, `update_session`.
+3. Partition key = `session_id` (UUID). Row key = `session_id`.
+4. JSON-serialize list fields (clo_list, plo_list, materials_urls, questions).
+**Result file**: `tasks/results/session-store.md`
 
 ---
 
-## Task: Implement FileHandlerAgent
+## Task: sharepoint-download
 **File**: `src/agents/file_handler_agent/file_handler_agent.py`
-**Goal**: Handle all Azure Blob Storage I/O, Azure AI Search vector queries, and OneDrive sharing link creation.
+**Goal**: Add `download_from_sharepoint(sharepoint_url) -> bytes` using Graph API.
 **Steps**:
-1. Implement `upload_to_blob(file_stream, filename, user_id) -> str` — uploads to `examops-input`, returns 1-hour SAS URL.
-2. Implement `download_from_blob(blob_url) -> Document` — downloads and returns python-docx `Document`.
-3. Implement `get_template_from_vectordb(query: str) -> dict` — ada-002 embedding + Azure AI Search.
-4. Implement `save_outputs(formatted_doc, diff_html, job_id) -> dict` — saves to `examops-output`, returns URL dict.
-5. Implement `create_onedrive_link(blob_url) -> str` — Graph API POST for shareable link.
-6. Wire all env vars: `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_SEARCH_ENDPOINT`, `AZURE_SEARCH_KEY`, `AZURE_OPENAI_ENDPOINT`.
-7. Write `file_handler_agent.md` spec doc.
-**Result file**: `tasks/results/file-handler-agent.md`
+1. Acquire Graph API token via client credentials.
+2. Resolve SharePoint sharing URL to file bytes.
+3. Return raw bytes usable for both .docx and .pdf.
+**Result file**: `tasks/results/sharepoint-download.md`
 
 ---
 
-## Task: Implement FormattingEngineAgent
-**File**: `src/agents/formatting_engine/formatting_engine.py`
-**Goal**: Two-layer hybrid formatter: deterministic rule-based transforms (Layer 1) followed by GPT-4o-mini LLM validation (Layer 2).
+## Task: syllabus-agent
+**File**: `src/agents/syllabus_agent/syllabus_agent.py`
+**Goal**: Accept .docx/.pdf bytes, extract CLO/PLO via GPT-4o-mini, write to session.
 **Steps**:
-1. Implement `RuleBasedFormatter.process(doc, template_rules) -> Document` with internal methods for header/footer, margins, numbering, marks, spacing, indentation.
-2. Add `m:oMath` XML guard in `_fix_numbering` — skip math expression runs.
-3. Implement `LLMValidator.validate(original, formatted, template_rules) -> dict` via `AIProjectClient` at `AZURE_FOUNDRY_ENDPOINT`.
-4. Return compliance JSON: `{compliance_score, category_scores, issues_found, edge_cases, math_expressions_preserved, summary}`.
-5. Add fallback: on timeout/exception return `{compliance_score: None, fallback_mode: True}`.
-6. Implement thin `FormattingEngineAgent.process_and_validate(original, template_rules)` wrapper.
-7. Write `formatting_engine.md` spec doc.
-**Result file**: `tasks/results/formatting-engine-agent.md`
+1. Parse .docx with python-docx or detect PDF (fallback: treat as text).
+2. Prompt GPT-4o-mini via Azure OpenAI to extract CLO and PLO lists.
+3. Write {clo_list, plo_list} to session via SessionStore.
+4. Return {clo_list, plo_list}.
+**Result file**: `tasks/results/syllabus-agent.md`
 
 ---
 
-## Task: Implement DiffGeneratorAgent
-**File**: `src/agents/diff_generator/diff_generator.py`
-**Goal**: Produce a color-coded HTML diff report and a summary stats dict from before/after documents.
+## Task: question-copilot-agent
+**File**: `src/agents/question_copilot_agent/question_copilot_agent.py`
+**Goal**: Streaming RAG chat agent using Azure AI Search over indexed materials.
 **Steps**:
-1. Implement `create_html_diff(original_doc, formatted_doc, validation) -> dict` using `difflib.HtmlDiff(wrapcolumn=80)`.
-2. Implement `generate_summary_stats(original_doc, formatted_doc, validation) -> dict` — count fixes by category.
-3. Implement `_extract_text_with_formatting(doc) -> str` helper.
-4. Implement `_add_css_styling(html) -> str` — inject del=red, ins=green CSS.
-5. Write `diff_generator.md` spec doc.
-**Result file**: `tasks/results/diff-generator-agent.md`
+1. Accept session_id and user message.
+2. Retrieve relevant context from Azure AI Search (materials index).
+3. Yield SSE tokens from GPT-4o-mini streaming completion.
+4. Include suggested CLO mapping and marks in final response.
+**Result file**: `tasks/results/question-copilot-agent.md`
 
 ---
 
-## Task: Implement Azure Function HTTP Trigger
-**File**: `src/functions/format_exam/__init__.py`
-**Goal**: HTTP-triggered Azure Function that accepts a `.docx` upload, invokes `CoordinatorAgent`, and returns the job result JSON.
+## Task: moderation-form-agent
+**File**: `src/agents/moderation_form_agent/moderation_form_agent.py`
+**Goal**: Fill AARO-FM-030 .docx template with session questions + CLO/PLO mapping.
 **Steps**:
-1. Accept `multipart/form-data` POST with `file` (binary) and `user_id` (string) fields.
-2. Upload received bytes to `examops-input` via `FileHandlerAgent.upload_to_blob`.
-3. Generate `job_id` (UUID4) and call `CoordinatorAgent.process_job(job_id, user_id, blob_url)`.
-4. Return 200 JSON `{job_id, status, compliance_score, formatted_url, diff_url, onedrive_link, summary}` on success.
-5. Return 400 for missing fields, 422 for corrupted file, 500 for unexpected errors.
-6. Write `function.json` with `httpTrigger` binding, `POST` only, `authLevel: function`.
-**Result file**: `tasks/results/azure-function.md`
+1. Load AARO-FM-030 template from blob storage or embedded fallback.
+2. Populate table rows with question text, CLO, PLO, marks.
+3. Upload completed form to Blob Storage (examops-output).
+4. Update session moderation_form_url and return download URL.
+**Result file**: `tasks/results/moderation-form-agent.md`
 
 ---
 
-## Task: Implement Teams Bot
-**File**: `src/bot/bot.py`, `src/bot/app.py`
-**Goal**: Microsoft Teams bot that accepts a `.docx` attachment, triggers the pipeline, and replies with a formatted adaptive card showing results.
+## Task: upload-syllabus-function
+**File**: `src/functions/upload_syllabus/__init__.py`
+**Goal**: POST /api/upload-syllabus — accept file or sharepoint_url, return {session_id, clo_list, plo_list}.
 **Steps**:
-1. In `bot.py` implement `ExamOpsBot(ActivityHandler)` with `on_message_activity`.
-2. Detect `.docx` attachment, download it via `attachment.content_url`, upload via `FileHandlerAgent.upload_to_blob`.
-3. Reply with "Processing…" card, then call `CoordinatorAgent.process_job`.
-4. On completion send adaptive card with: compliance score badge, fix counts (numbering/spacing/formatting), OneDrive link button, diff report link button.
-5. Handle no-attachment case: reply with usage instructions.
-6. In `app.py` configure `BotFrameworkAdapter` with `MicrosoftAppId`/`MicrosoftAppPassword` from env, wire `/api/messages` route.
-**Result file**: `tasks/results/teams-bot.md`
+1. Accept multipart file OR sharepoint_url query param.
+2. Create or reuse session_id from X-Session-ID header.
+3. Call SyllabusAgent.process(file_bytes, session_id).
+4. Return {session_id, clo_list, plo_list}.
+**Result file**: `tasks/results/upload-syllabus-function.md`
 
 ---
 
-## Task: Implement Tests
-**File**: `tests/test_formatting_engine.py`, `tests/test_diff_generator.py`, `tests/test_coordinator_agent.py`
-**Goal**: Unit tests covering the core formatting transforms, diff generation, and coordinator error paths.
+## Task: upload-materials-function
+**File**: `src/functions/upload_materials/__init__.py`
+**Goal**: POST /api/upload-materials — upload to Blob, index in AI Search.
 **Steps**:
-1. `test_formatting_engine.py` — test `_fix_numbering` (Q1.→(a)→(i)), `_fix_marks_notation`, `_fix_colon_spacing`, `m:oMath` guard skips math runs.
-2. `test_diff_generator.py` — test `generate_summary_stats` counts, `_add_css_styling` injects correct CSS, `create_html_diff` returns `html` and `stats` keys.
-3. `test_coordinator_agent.py` — test `process_job` success path (mock agents), `ERR_CORRUPTED_FILE`, `ERR_TEMPLATE_NOT_FOUND`, LLM timeout fallback → `status="partial"`.
-4. All tests use `pytest` + `pytest-asyncio`; mock Azure SDK calls with `unittest.mock`.
-5. Add `tests/__init__.py` and `tests/conftest.py` with shared fixtures (sample docx, mock template_rules).
-**Result file**: `tasks/results/tests.md`
+1. Accept multipart file OR sharepoint_url.
+2. Upload bytes to examops-input blob.
+3. Upsert document into Azure AI Search materials index.
+4. Update session.materials_urls and return {session_id, materials_count}.
+**Result file**: `tasks/results/upload-materials-function.md`
 
 ---
 
-## Task: Implement scripts/upload_template.py
-**File**: `scripts/upload_template.py`
-**Goal**: Parse sample/ guideline .docx files, extract structured template rules, embed them with ada-002, and upsert into Azure AI Search index `exam-templates`.
+## Task: chat-function
+**File**: `src/functions/chat/__init__.py`
+**Goal**: POST /api/chat — SSE streaming from QuestionCopilotAgent.
 **Steps**:
-1. Parse `sample/Exam Paper Format Guideline 1.docx` and `sample/Marking Scheme Format Guideline 1.docx` with python-docx.
-2. Extract template rules dict: header_text, footer_text, numbering_scheme, marks_pattern, colon_spacing, margin_cm, indentation_cm.
-3. Serialize rules to JSON; create embedding via Azure OpenAI ada-002.
-4. Upsert document with id, title, content (rules JSON), content_vector into Azure AI Search index `exam-templates`.
-5. Accept `--dry-run` flag to print extracted rules without uploading.
-6. Accept `--index-name` override (default: `exam-templates`).
-**Result file**: `tasks/results/upload-template.md`
+1. Accept JSON {session_id, message}.
+2. Invoke QuestionCopilotAgent and yield SSE tokens.
+3. Stream response with Content-Type: text/event-stream.
+4. Final SSE event includes suggested CLO + marks.
+**Result file**: `tasks/results/chat-function.md`
 
 ---
 
-## Task: Implement SK "Team Leader" CoordinatorAgent
-**File**: `src/agents/coordinator_agent/coordinator_agent.py`, `src/agents/job_context.py`, `src/agents/kernel_setup.py`, `src/agents/plugins/`
-**Goal**: Replace the hard-coded sequential chain with a `ChatCompletionAgent` team leader that delegates pipeline steps to SK plugins via automatic function calling, with a manual-chain fallback.
+## Task: fill-moderation-form-function
+**File**: `src/functions/fill_moderation_form/__init__.py`
+**Goal**: POST /api/fill-moderation-form — return {download_url}.
 **Steps**:
-1. Create `src/agents/job_context.py` — `JobContext` dataclass + thread-safe `JobContextRegistry` singleton.
-2. Create `src/agents/plugins/__init__.py` (empty package).
-3. Create `src/agents/plugins/file_handler_plugin.py` — `FileHandlerPlugin` with 4 `@kernel_function` methods (`download_document`, `get_template`, `save_outputs`, `create_sharing_link`).
-4. Create `src/agents/plugins/formatting_plugin.py` — `FormattingPlugin` with `format_and_validate` kernel function.
-5. Create `src/agents/plugins/diff_plugin.py` — `DiffPlugin` with `generate_diff` kernel function.
-6. Create `src/agents/kernel_setup.py` — `build_kernel()` wires `AzureChatCompletion` + 3 plugins.
-7. Refactor `CoordinatorAgent.__init__` to instantiate sub-agents, build kernel, and create `ChatCompletionAgent` team leader (graceful degradation if SK unavailable).
-8. Refactor `CoordinatorAgent.process_job` to try SK path first via `_sk_path()`, fall back to original `_manual_chain()` on any exception.
-9. Add `TEAM_LEADER_PROMPT` constant with ordered 6-step pipeline instructions.
-10. Add `TestSKTeamLeaderPath` and `TestSKFallback` test classes to `tests/test_coordinator_agent.py`.
-**Result file**: `tasks/results/team-leader.md`
+1. Accept JSON {session_id}.
+2. Call ModerationFormAgent.fill_form(session_id).
+3. Return {download_url}.
+**Result file**: `tasks/results/fill-moderation-form-function.md`
+
+---
+
+## Task: export-questions-function
+**File**: `src/functions/export_questions/__init__.py`
+**Goal**: POST /api/export-questions — build .docx from session.questions, return blob URL.
+**Steps**:
+1. Accept JSON {session_id}.
+2. Load session.questions.
+3. Build .docx with python-docx listing all questions.
+4. Upload to Blob, return {download_url}.
+**Result file**: `tasks/results/export-questions-function.md`
+
+---
+
+## Task: mcp-server
+**File**: `src/mcp/server.py`
+**Goal**: Expose ExamOps pipeline as 4 MCP tools.
+**Steps**:
+1. Expose upload_syllabus, generate_questions, fill_moderation_form, format_exam tools.
+2. Runnable standalone as MCP server.
+3. Tools delegate to respective agents.
+**Result file**: `tasks/results/mcp-server.md`

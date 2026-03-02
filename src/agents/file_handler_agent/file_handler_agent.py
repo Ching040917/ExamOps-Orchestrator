@@ -335,6 +335,112 @@ class FileHandlerAgent:
         logger.info("Created OneDrive link for item %s", item_id)
         return link
 
+    # ── SharePoint download ───────────────────────────────────────────────────
+
+    async def download_from_sharepoint(self, sharepoint_url: str) -> bytes:
+        """
+        Download a file from SharePoint/OneDrive using Microsoft Graph API.
+
+        Resolves a SharePoint sharing URL to raw file bytes.
+
+        Args:
+            sharepoint_url: SharePoint file URL or sharing link.
+
+        Returns:
+            Raw bytes of the file.
+        """
+        import base64
+        import requests
+
+        token = self._get_graph_token()
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # Encode the URL as a sharing token (Graph API shares endpoint)
+        encoded = base64.urlsafe_b64encode(sharepoint_url.encode()).rstrip(b"=").decode()
+        shares_url = f"https://graph.microsoft.com/v1.0/shares/u!{encoded}/driveItem/content"
+
+        response = requests.get(shares_url, headers=headers, timeout=60, allow_redirects=True)
+
+        if response.status_code == 302:
+            # Follow redirect to actual download URL
+            response = requests.get(
+                response.headers["Location"], timeout=60
+            )
+
+        response.raise_for_status()
+        logger.info("Downloaded %d bytes from SharePoint", len(response.content))
+        return response.content
+
+    # ── Blob upload for bytes ─────────────────────────────────────────────────
+
+    async def upload_bytes_to_blob(
+        self, data: bytes, filename: str, container: str = None
+    ) -> str:
+        """
+        Upload raw bytes to Blob Storage and return a SAS URL.
+
+        Args:
+            data:      Raw bytes to upload.
+            filename:  Blob name / filename.
+            container: Target container (defaults to examops-input).
+
+        Returns:
+            1-hour SAS URL.
+        """
+        import io
+
+        return await self.upload_to_blob(
+            file_stream=io.BytesIO(data),
+            filename=filename,
+            user_id="system",
+        )
+
+    # ── Upsert document into AI Search ───────────────────────────────────────
+
+    async def index_document_in_search(
+        self, doc_id: str, content: str, session_id: str, filename: str
+    ) -> None:
+        """
+        Upsert a document into Azure AI Search materials index.
+
+        Args:
+            doc_id:     Unique document ID.
+            content:    Extracted text content.
+            session_id: Session identifier for filtering.
+            filename:   Original filename.
+        """
+        from openai import AzureOpenAI
+        from azure.search.documents import SearchClient
+        from azure.core.credentials import AzureKeyCredential
+
+        materials_index = os.getenv("SEARCH_MATERIALS_INDEX", "exam-materials")
+
+        openai_client = AzureOpenAI(
+            azure_endpoint=self._openai_endpoint,
+            api_key=self._openai_key,
+            api_version="2024-02-01",
+        )
+        embedding_response = openai_client.embeddings.create(
+            input=content[:8000], model=EMBEDDING_MODEL
+        )
+        embedding = embedding_response.data[0].embedding
+
+        search_client = SearchClient(
+            endpoint=self._search_endpoint,
+            index_name=materials_index,
+            credential=AzureKeyCredential(self._search_key),
+        )
+        search_client.upload_documents([
+            {
+                "id": doc_id,
+                "session_id": session_id,
+                "filename": filename,
+                "content": content[:32000],
+                "content_vector": embedding,
+            }
+        ])
+        logger.info("Indexed document %s in AI Search index %s", doc_id, materials_index)
+
     # ── Internal helpers ─────────────────────────────────────────────────────
 
     def _get_graph_token(self) -> str:

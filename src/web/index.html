@@ -3,459 +3,457 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ExamOps Orchestrator — Southern University College</title>
+  <title>ExamOps — 5-Step Exam Creator | Southern University College</title>
   <style>
-    /* ── Reset & base ─────────────────────────────────────────────────────── */
+    /* ── Reset & base ────────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; }
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: #f5f7fa;
+      background: #f0f2f5;
       color: #1a1a2e;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* ── SUC Header ───────────────────────────────────────────────────────── */
+    /* ── SUC Header ──────────────────────────────────────────────────────── */
     .suc-header {
       background: linear-gradient(135deg, #003087 0%, #0057b8 60%, #0073e6 100%);
       color: #fff;
       padding: 0;
       box-shadow: 0 2px 12px rgba(0,48,135,0.35);
-    }
-    .suc-header-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 18px 24px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .suc-logo {
-      width: 56px;
-      height: 56px;
-      background: #fff;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: 900;
-      color: #003087;
-      letter-spacing: -1px;
       flex-shrink: 0;
     }
+    .suc-header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .suc-logo {
+      width: 48px; height: 48px;
+      background: #fff;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; color: #003087;
+      letter-spacing: -1px; flex-shrink: 0;
+    }
     .suc-title { flex: 1; }
-    .suc-title h1 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: 0.01em;
-      line-height: 1.2;
-    }
-    .suc-title p {
-      font-size: 0.8rem;
-      opacity: 0.82;
-      margin-top: 3px;
-      letter-spacing: 0.02em;
-    }
+    .suc-title h1 { font-size: 1.1rem; font-weight: 700; line-height: 1.2; }
+    .suc-title p { font-size: 0.76rem; opacity: 0.82; margin-top: 2px; }
     .suc-badge {
       background: rgba(255,255,255,0.15);
       border: 1px solid rgba(255,255,255,0.3);
       border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
+      padding: 4px 12px;
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
     }
 
-    /* ── Main layout ──────────────────────────────────────────────────────── */
-    .main {
-      max-width: 1100px;
+    /* ── App shell ───────────────────────────────────────────────────────── */
+    .app-shell {
+      flex: 1;
+      display: flex;
+      max-width: 1400px;
       margin: 0 auto;
-      padding: 36px 24px 60px;
+      width: 100%;
+      padding: 24px;
+      gap: 24px;
+      align-items: flex-start;
     }
-    .page-intro {
-      text-align: center;
-      margin-bottom: 32px;
+
+    /* ── Left panel — step nav ───────────────────────────────────────────── */
+    .step-nav {
+      width: 220px;
+      flex-shrink: 0;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 20px 0;
+      position: sticky;
+      top: 24px;
     }
-    .page-intro h2 {
-      font-size: 1.55rem;
+    .step-nav-title {
+      font-size: 0.72rem;
       font-weight: 700;
-      color: #003087;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #999;
+      padding: 0 20px 12px;
+      border-bottom: 1px solid #f0f2f5;
       margin-bottom: 8px;
     }
-    .page-intro p {
-      color: #555;
-      font-size: 0.95rem;
-      max-width: 580px;
-      margin: 0 auto;
-      line-height: 1.6;
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-left: 3px solid transparent;
     }
+    .step-item:hover { background: #f8f9fc; }
+    .step-item.active {
+      background: #f0f4ff;
+      border-left-color: #0057b8;
+    }
+    .step-item.complete .step-dot { background: #16a34a; }
+    .step-item.active .step-dot { background: #0057b8; }
+    .step-item.locked { opacity: 0.45; cursor: default; }
+    .step-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: #d0d7e3;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+    .step-dot svg { width: 14px; height: 14px; fill: #fff; }
+    .step-label { font-size: 0.82rem; font-weight: 500; line-height: 1.25; }
+    .step-sub { font-size: 0.7rem; color: #888; margin-top: 1px; }
 
-    /* ── Upload card ──────────────────────────────────────────────────────── */
+    /* ── Main panel ──────────────────────────────────────────────────────── */
+    .main-panel {
+      flex: 1;
+      min-width: 0;
+    }
+    .step-view { display: none; }
+    .step-view.active { display: block; }
+
+    /* ── Card ────────────────────────────────────────────────────────────── */
     .card {
       background: #fff;
       border-radius: 14px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-      padding: 36px;
-      margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 32px;
+      margin-bottom: 20px;
     }
     .card-title {
-      font-size: 1rem;
+      font-size: 1.2rem;
       font-weight: 700;
       color: #003087;
-      margin-bottom: 18px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-bottom: 6px;
     }
-    .card-title svg { flex-shrink: 0; }
+    .card-desc { font-size: 0.88rem; color: #666; margin-bottom: 24px; line-height: 1.6; }
 
-    /* Drop zone */
-    .drop-zone {
-      border: 2.5px dashed #b0c4e8;
-      border-radius: 12px;
-      padding: 52px 24px;
+    /* ── Upload area ─────────────────────────────────────────────────────── */
+    .upload-area {
+      border: 2px dashed #c8d4e8;
+      border-radius: 10px;
+      padding: 36px;
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
-      background: #f8faff;
-      position: relative;
+      margin-bottom: 16px;
     }
-    .drop-zone.drag-over {
+    .upload-area:hover, .upload-area.dragover {
       border-color: #0057b8;
-      background: #eef4ff;
+      background: #f0f4ff;
     }
-    .drop-zone.has-file {
-      border-color: #2e7d32;
-      background: #f0faf1;
-    }
-    .drop-zone input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-    }
-    .drop-icon {
-      font-size: 3rem;
-      margin-bottom: 12px;
-      line-height: 1;
-    }
-    .drop-zone h3 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 6px;
-    }
-    .drop-zone p {
-      font-size: 0.85rem;
-      color: #777;
-    }
-    .file-selected {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 14px;
-      padding: 10px 16px;
-      background: #e8f5e9;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #2e7d32;
-    }
-    .file-selected.visible { display: flex; }
+    .upload-icon { font-size: 2rem; margin-bottom: 8px; }
+    .upload-label { font-size: 0.9rem; font-weight: 600; color: #003087; }
+    .upload-sub { font-size: 0.78rem; color: #888; margin-top: 4px; }
+    .upload-file-input { display: none; }
 
-    /* Form row */
-    .form-row {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-      align-items: flex-end;
+    .or-divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 16px 0; color: #999; font-size: 0.8rem;
     }
-    .form-group { flex: 1; }
-    .form-group label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #555;
-      margin-bottom: 6px;
-      letter-spacing: 0.01em;
+    .or-divider::before, .or-divider::after {
+      content: ''; flex: 1; height: 1px; background: #e5e7eb;
     }
-    .form-group input {
-      width: 100%;
+
+    /* ── Inputs ──────────────────────────────────────────────────────────── */
+    .input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+    .input-text {
+      flex: 1;
+      border: 1px solid #d0d7e3;
+      border-radius: 8px;
       padding: 10px 14px;
-      border: 1.5px solid #d0d9e8;
+      font-size: 0.88rem;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .input-text:focus { outline: none; border-color: #0057b8; }
+    .btn {
+      padding: 10px 20px;
       border-radius: 8px;
-      font-size: 0.92rem;
-      color: #222;
-      transition: border-color 0.2s;
-      background: #fafcff;
-    }
-    .form-group input:focus {
-      outline: none;
-      border-color: #0057b8;
-      background: #fff;
-    }
-
-    /* Submit button */
-    .btn-primary {
-      padding: 11px 28px;
-      background: linear-gradient(135deg, #0057b8, #003087);
-      color: #fff;
       border: none;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 700;
+      font-size: 0.88rem;
+      font-weight: 600;
       cursor: pointer;
       transition: opacity 0.15s, transform 0.1s;
       white-space: nowrap;
-      letter-spacing: 0.01em;
     }
-    .btn-primary:hover { opacity: 0.9; }
-    .btn-primary:active { transform: scale(0.98); }
-    .btn-primary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .btn-secondary {
-      padding: 9px 20px;
-      background: #fff;
-      color: #0057b8;
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { background: #0057b8; color: #fff; }
+    .btn-success { background: #16a34a; color: #fff; }
+    .btn-outline {
+      background: #fff; color: #0057b8;
       border: 1.5px solid #0057b8;
-      border-radius: 8px;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
     }
-    .btn-secondary:hover { background: #f0f5ff; }
+    .btn-sm { padding: 6px 14px; font-size: 0.78rem; }
+    .btn:disabled { opacity: 0.45; cursor: default; transform: none; }
 
-    /* ── Progress ─────────────────────────────────────────────────────────── */
-    .progress-card { display: none; }
-    .progress-card.visible { display: block; }
-    .progress-steps {
-      display: flex;
-      gap: 0;
-      margin-bottom: 24px;
+    /* ── Status / alerts ─────────────────────────────────────────────────── */
+    .alert {
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      display: none;
     }
-    .step {
+    .alert.show { display: block; }
+    .alert-success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+    .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .alert-info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(0,87,184,0.2);
+      border-top-color: #0057b8;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── CLO/PLO pills ───────────────────────────────────────────────────── */
+    .pill-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .pill {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.76rem;
+      font-weight: 500;
+      line-height: 1.5;
+    }
+    .pill.plo { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+
+    /* ── Step 3: Chat layout ─────────────────────────────────────────────── */
+    .chat-shell {
+      display: flex;
+      gap: 20px;
+      height: calc(100vh - 220px);
+      min-height: 480px;
+    }
+    .chat-panel {
       flex: 1;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      position: relative;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      overflow: hidden;
     }
-    .step:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      top: 16px;
-      left: 50%;
-      width: 100%;
-      height: 2px;
-      background: #e0e7ef;
-      z-index: 0;
-    }
-    .step.done:not(:last-child)::after { background: #0057b8; }
-    .step-dot {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: #e0e7ef;
-      color: #999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8rem;
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f2f5;
       font-weight: 700;
-      z-index: 1;
-      position: relative;
-      transition: background 0.3s, color 0.3s;
+      font-size: 0.95rem;
+      color: #003087;
     }
-    .step.active .step-dot {
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-msg {
+      max-width: 85%;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .chat-msg.user {
       background: #0057b8;
       color: #fff;
-      animation: pulse 1.2s ease-in-out infinite;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
     }
-    .step.done .step-dot { background: #2e7d32; color: #fff; }
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(0,87,184,0.4); }
-      50% { box-shadow: 0 0 0 8px rgba(0,87,184,0); }
+    .chat-msg.assistant {
+      background: #f5f7fa;
+      color: #1a1a2e;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
     }
-    .step-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #999;
-      margin-top: 8px;
-      text-align: center;
-      letter-spacing: 0.02em;
-    }
-    .step.active .step-label, .step.done .step-label { color: #003087; }
-
-    .progress-bar-wrap {
-      background: #e8eef6;
-      border-radius: 99px;
-      height: 8px;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, #0057b8, #0073e6);
-      border-radius: 99px;
-      width: 0%;
-      transition: width 0.6s ease;
-    }
-    .progress-status {
-      text-align: center;
-      font-size: 0.88rem;
-      color: #555;
-      font-style: italic;
-    }
-
-    /* ── Results ──────────────────────────────────────────────────────────── */
-    .results-card { display: none; }
-    .results-card.visible { display: block; }
-
-    .score-row {
+    .chat-msg.streaming { opacity: 0.85; }
+    .chat-input-bar {
+      padding: 12px 16px;
+      border-top: 1px solid #f0f2f5;
       display: flex;
-      gap: 16px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-    .score-big {
-      background: linear-gradient(135deg, #003087, #0073e6);
-      color: #fff;
-      border-radius: 12px;
-      padding: 24px 32px;
-      text-align: center;
-      min-width: 160px;
-    }
-    .score-big .score-number {
-      font-size: 3rem;
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: -2px;
-    }
-    .score-big .score-label {
-      font-size: 0.78rem;
-      opacity: 0.85;
-      margin-top: 6px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    .score-categories {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
-    .category-item {
-      background: #f5f8ff;
-      border: 1px solid #d8e4f5;
+    .chat-input {
+      flex: 1;
+      border: 1px solid #d0d7e3;
       border-radius: 8px;
-      padding: 12px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      resize: none;
+      max-height: 120px;
     }
-    .category-item .cat-name {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: #444;
-    }
-    .category-item .cat-val {
-      font-size: 1rem;
-      font-weight: 800;
-      color: #0057b8;
-    }
-    .category-item .cat-val.zero { color: #999; }
+    .chat-input:focus { outline: none; border-color: #0057b8; }
 
-    /* Status badge */
-    .status-badge {
+    /* ── Question sidebar ────────────────────────────────────────────────── */
+    .question-sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .qs-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f2f5;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #003087;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .qs-count {
+      background: #0057b8;
+      color: #fff;
+      border-radius: 20px;
+      padding: 2px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+    .qs-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .qs-empty {
+      text-align: center;
+      color: #aaa;
+      font-size: 0.82rem;
+      margin-top: 48px;
+    }
+    .qs-item {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 0.82rem;
+    }
+    .qs-item-text { color: #222; line-height: 1.5; margin-bottom: 6px; }
+    .qs-item-meta { font-size: 0.72rem; color: #888; margin-bottom: 8px; }
+    .qs-item-remove {
+      background: none;
+      border: none;
+      color: #dc2626;
+      cursor: pointer;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0;
+    }
+    .qs-footer {
+      padding: 12px 16px;
+      border-top: 1px solid #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* ── Add-to-exam floating button in chat msgs ────────────────────────── */
+    .add-btn-wrap { margin-top: 8px; }
+    .btn-add-exam {
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 5px 14px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-add-exam:hover { background: #dcfce7; }
+
+    /* ── Step 4: Moderation table ────────────────────────────────────────── */
+    .mod-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 16px;
+    }
+    .mod-table th {
+      background: #f0f4ff;
+      color: #003087;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 2px solid #c8d4e8;
+    }
+    .mod-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f2f5;
+      vertical-align: top;
+    }
+    .mod-table tr:last-child td { border-bottom: none; }
+    .mod-table tr:hover td { background: #fafbff; }
+
+    /* ── Step 5: Diff viewer ─────────────────────────────────────────────── */
+    .diff-frame {
+      width: 100%;
+      height: 480px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      margin-top: 16px;
+    }
+    .score-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 14px;
-      border-radius: 20px;
-      font-size: 0.8rem;
+      background: #f0fdf4;
+      color: #15803d;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 6px 16px;
       font-weight: 700;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      margin-bottom: 20px;
-    }
-    .status-badge.success { background: #e8f5e9; color: #2e7d32; }
-    .status-badge.partial { background: #fff8e1; color: #f57f17; }
-    .status-badge.failed  { background: #ffebee; color: #c62828; }
-
-    /* Download row */
-    .download-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
-
-    /* Diff section */
-    .diff-section {
-      margin-top: 28px;
-      border-top: 1.5px solid #e8eef6;
-      padding-top: 24px;
-    }
-    .diff-section h3 {
       font-size: 0.95rem;
-      font-weight: 700;
-      color: #003087;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
-    .diff-frame-wrap {
-      border: 1px solid #d0d9e8;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .diff-frame {
-      width: 100%;
-      border: none;
-      min-height: 420px;
-      background: #fff;
-      display: block;
+    .score-badge.warn { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+    .score-badge.danger { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+    /* ── Nav footer buttons ──────────────────────────────────────────────── */
+    .step-nav-btns {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 24px;
     }
 
-    /* ── Error state ──────────────────────────────────────────────────────── */
-    .error-box {
-      background: #ffebee;
-      border: 1.5px solid #ef9a9a;
-      border-radius: 10px;
-      padding: 18px 20px;
-      color: #c62828;
-      font-size: 0.9rem;
-      display: none;
-      margin-top: 16px;
-    }
-    .error-box.visible { display: block; }
-    .error-box strong { display: block; margin-bottom: 6px; }
-
-    /* ── Footer ───────────────────────────────────────────────────────────── */
-    .page-footer {
-      text-align: center;
-      margin-top: 48px;
-      font-size: 0.78rem;
-      color: #aaa;
-    }
-
-    /* ── Responsive ───────────────────────────────────────────────────────── */
-    @media (max-width: 640px) {
-      .score-categories { grid-template-columns: 1fr; }
-      .form-row { flex-direction: column; }
-      .score-row { flex-direction: column; }
-      .suc-badge { display: none; }
+    /* ── Responsive ──────────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .app-shell { flex-direction: column; padding: 16px; }
+      .step-nav { width: 100%; position: static; }
+      .step-nav { display: flex; flex-wrap: wrap; padding: 12px 16px; gap: 4px; }
+      .step-item { padding: 6px 10px; border-left: none; border-bottom: 2px solid transparent; }
+      .step-item.active { border-bottom-color: #0057b8; }
+      .chat-shell { flex-direction: column; height: auto; }
+      .question-sidebar { width: 100%; }
     }
   </style>
 </head>
@@ -467,372 +465,808 @@
     <div class="suc-logo">SUC</div>
     <div class="suc-title">
       <h1>ExamOps Orchestrator</h1>
-      <p>Southern University College &mdash; Faculty of Engineering &amp; IT</p>
+      <p>AI-Powered Exam Creation Pipeline — Southern University College</p>
     </div>
-    <div class="suc-badge">AI-Powered</div>
+    <span class="suc-badge">AI Dev Days 2026</span>
   </div>
 </header>
 
-<!-- ── Main ───────────────────────────────────────────────────────────────── -->
-<main class="main">
+<!-- ── App Shell ───────────────────────────────────────────────────────────── -->
+<div class="app-shell">
 
-  <div class="page-intro">
-    <h2>Automated Exam Paper Formatter</h2>
-    <p>
-      Upload a <code>.docx</code> exam paper and the system will automatically
-      correct numbering, spacing, marks notation, and headers to comply with
-      SUC institutional formatting standards.
-    </p>
-  </div>
+  <!-- Left panel: step navigation -->
+  <nav class="step-nav" id="stepNav">
+    <div class="step-nav-title">Exam Creation Steps</div>
 
-  <!-- Upload card -->
-  <div class="card" id="upload-card">
-    <div class="card-title">
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-      </svg>
-      Upload Exam Paper
-    </div>
-
-    <div class="drop-zone" id="drop-zone">
-      <input type="file" id="file-input" accept=".docx" />
-      <div class="drop-icon">📄</div>
-      <h3>Drag &amp; drop your <code>.docx</code> file here</h3>
-      <p>or click to browse — Word documents only (.docx)</p>
-    </div>
-    <div class="file-selected" id="file-selected">
-      <span>✅</span>
-      <span id="file-name-display"></span>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label for="user-id-input">Staff / Student ID (optional)</label>
-        <input type="text" id="user-id-input" placeholder="e.g. L001234 or your email" />
-      </div>
-      <button class="btn-primary" id="submit-btn" disabled>
-        Format Document →
-      </button>
-    </div>
-
-    <div class="error-box" id="error-box">
-      <strong>Error</strong>
-      <span id="error-msg"></span>
-    </div>
-  </div>
-
-  <!-- Progress card -->
-  <div class="card progress-card" id="progress-card">
-    <div class="card-title">
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      Processing
-    </div>
-
-    <div class="progress-steps" id="progress-steps">
-      <div class="step" id="step-1">
-        <div class="step-dot">1</div>
-        <div class="step-label">Uploading</div>
-      </div>
-      <div class="step" id="step-2">
-        <div class="step-dot">2</div>
-        <div class="step-label">Retrieving Template</div>
-      </div>
-      <div class="step" id="step-3">
-        <div class="step-dot">3</div>
-        <div class="step-label">Formatting</div>
-      </div>
-      <div class="step" id="step-4">
-        <div class="step-dot">4</div>
-        <div class="step-label">LLM Validation</div>
-      </div>
-      <div class="step" id="step-5">
-        <div class="step-dot">5</div>
-        <div class="step-label">Generating Diff</div>
-      </div>
-      <div class="step" id="step-6">
-        <div class="step-dot">✓</div>
-        <div class="step-label">Complete</div>
+    <div class="step-item active" data-step="1" onclick="goToStep(1)">
+      <div class="step-dot" id="dot1">1</div>
+      <div>
+        <div class="step-label">Upload Syllabus</div>
+        <div class="step-sub">Extract CLOs &amp; PLOs</div>
       </div>
     </div>
 
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="progress-bar"></div>
-    </div>
-    <div class="progress-status" id="progress-status">Uploading document…</div>
-  </div>
-
-  <!-- Results card -->
-  <div class="card results-card" id="results-card">
-    <div class="card-title">
-      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round"
-          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      Formatting Results
-    </div>
-
-    <div id="status-badge-wrap"></div>
-
-    <div class="score-row">
-      <div class="score-big">
-        <div class="score-number" id="score-number">—</div>
-        <div class="score-label">Compliance Score</div>
-      </div>
-      <div class="score-categories" id="category-grid"></div>
-    </div>
-
-    <div class="download-row" id="download-row"></div>
-
-    <div class="diff-section" id="diff-section" style="display:none">
-      <h3>📋 Document Diff Report</h3>
-      <div class="diff-frame-wrap">
-        <iframe class="diff-frame" id="diff-frame" title="Diff Report"></iframe>
+    <div class="step-item locked" data-step="2" onclick="goToStep(2)">
+      <div class="step-dot" id="dot2">2</div>
+      <div>
+        <div class="step-label">Upload Materials</div>
+        <div class="step-sub">Index learning content</div>
       </div>
     </div>
 
-    <div style="margin-top:24px">
-      <button class="btn-primary" onclick="resetUI()" style="background:linear-gradient(135deg,#455a64,#263238)">
-        ← Format Another Document
-      </button>
+    <div class="step-item locked" data-step="3" onclick="goToStep(3)">
+      <div class="step-dot" id="dot3">3</div>
+      <div>
+        <div class="step-label">Copilot</div>
+        <div class="step-sub">Generate questions</div>
+      </div>
     </div>
-  </div>
 
-</main>
+    <div class="step-item locked" data-step="4" onclick="goToStep(4)">
+      <div class="step-dot" id="dot4">4</div>
+      <div>
+        <div class="step-label">Moderation Form</div>
+        <div class="step-sub">CLO/PLO mapping</div>
+      </div>
+    </div>
 
-<footer class="page-footer">
-  ExamOps Orchestrator &mdash; Southern University College &mdash; Faculty of Engineering &amp; IT<br/>
-  Powered by Azure Functions &bull; Azure AI Foundry &bull; python-docx
-</footer>
+    <div class="step-item locked" data-step="5" onclick="goToStep(5)">
+      <div class="step-dot" id="dot5">5</div>
+      <div>
+        <div class="step-label">Format Exam</div>
+        <div class="step-sub">Apply formatting rules</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main panel -->
+  <main class="main-panel">
+
+    <!-- ── STEP 1: Upload Syllabus ─────────────────────────────────────── -->
+    <div class="step-view active" id="view1">
+      <div class="card">
+        <div class="card-title">Step 1 — Upload Syllabus</div>
+        <div class="card-desc">
+          Upload your course syllabus (.docx or .pdf) or paste a SharePoint URL.
+          The AI will extract Course Learning Outcomes (CLOs) and Programme Learning Outcomes (PLOs).
+        </div>
+
+        <div class="upload-area" id="uploadArea1"
+             onclick="document.getElementById('fileInput1').click()"
+             ondragover="handleDragOver(event,'uploadArea1')"
+             ondragleave="handleDragLeave(event,'uploadArea1')"
+             ondrop="handleDrop(event,'fileInput1','uploadArea1')">
+          <div class="upload-icon">📄</div>
+          <div class="upload-label">Click to upload or drag &amp; drop</div>
+          <div class="upload-sub">Supports .docx and .pdf</div>
+          <div id="fileName1" style="margin-top:8px;font-size:0.8rem;color:#0057b8;font-weight:600"></div>
+        </div>
+        <input type="file" class="upload-file-input" id="fileInput1"
+               accept=".docx,.pdf"
+               onchange="onFileSelect(this,'fileName1')">
+
+        <div class="or-divider">or</div>
+
+        <div class="input-row">
+          <input type="url" class="input-text" id="spUrl1"
+                 placeholder="Paste SharePoint URL…">
+        </div>
+
+        <div id="alert1" class="alert"></div>
+
+        <div class="step-nav-btns">
+          <div></div>
+          <button class="btn btn-primary" onclick="submitStep1()">
+            Extract CLOs &amp; PLOs →
+          </button>
+        </div>
+      </div>
+
+      <!-- CLO/PLO result -->
+      <div class="card" id="cloResult" style="display:none">
+        <div class="card-title" style="margin-bottom:12px">✅ CLOs &amp; PLOs Extracted</div>
+        <div style="margin-bottom:8px;font-weight:600;font-size:0.85rem;color:#555">Course Learning Outcomes</div>
+        <div class="pill-list" id="cloList"></div>
+        <div style="margin:16px 0 8px;font-weight:600;font-size:0.85rem;color:#555">Programme Learning Outcomes</div>
+        <div class="pill-list" id="ploList"></div>
+        <div class="step-nav-btns">
+          <div></div>
+          <button class="btn btn-success" onclick="goToStep(2)">
+            Continue to Step 2 →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: Upload Materials ────────────────────────────────────── -->
+    <div class="step-view" id="view2">
+      <div class="card">
+        <div class="card-title">Step 2 — Upload Learning Materials</div>
+        <div class="card-desc">
+          Upload lecture notes, textbooks, or past exam papers (.docx, .pdf, .txt).
+          These will be indexed for AI-powered question generation in Step 3.
+        </div>
+
+        <div class="upload-area" id="uploadArea2"
+             onclick="document.getElementById('fileInput2').click()"
+             ondragover="handleDragOver(event,'uploadArea2')"
+             ondragleave="handleDragLeave(event,'uploadArea2')"
+             ondrop="handleDrop(event,'fileInput2','uploadArea2')">
+          <div class="upload-icon">📚</div>
+          <div class="upload-label">Click to upload or drag &amp; drop</div>
+          <div class="upload-sub">Supports .docx, .pdf, .txt — multiple files welcome</div>
+          <div id="fileName2" style="margin-top:8px;font-size:0.8rem;color:#0057b8;font-weight:600"></div>
+        </div>
+        <input type="file" class="upload-file-input" id="fileInput2"
+               accept=".docx,.pdf,.txt" multiple
+               onchange="onFileSelect(this,'fileName2')">
+
+        <div class="or-divider">or</div>
+
+        <div class="input-row">
+          <input type="url" class="input-text" id="spUrl2"
+                 placeholder="Paste SharePoint URL…">
+          <button class="btn btn-outline" onclick="submitStep2Sp()">Upload from SP</button>
+        </div>
+
+        <div id="alert2" class="alert"></div>
+
+        <div id="materialsUploaded" style="display:none;margin-top:12px">
+          <div style="font-size:0.85rem;font-weight:600;color:#15803d">
+            ✅ <span id="materialsCount">0</span> file(s) indexed
+          </div>
+        </div>
+
+        <div class="step-nav-btns">
+          <button class="btn btn-outline" onclick="goToStep(1)">← Back</button>
+          <button class="btn btn-primary" onclick="submitStep2()">
+            Index Materials →
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: Copilot (Question Generation) ──────────────────────── -->
+    <div class="step-view" id="view3">
+      <div class="chat-shell">
+        <!-- Chat panel -->
+        <div class="chat-panel">
+          <div class="chat-header">
+            💬 Exam Copilot
+            <span style="font-size:0.75rem;font-weight:400;color:#666;margin-left:8px">
+              Powered by GPT-4o-mini + RAG
+            </span>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg assistant">
+              Hi! I'm your exam question copilot. Ask me to generate questions based on your learning materials, e.g.:<br><br>
+              <em>"Generate 3 MCQs on data normalisation for CLO1 (5 marks each)"</em>
+            </div>
+          </div>
+          <div class="chat-input-bar">
+            <textarea class="chat-input" id="chatInput" rows="2"
+              placeholder="Ask the copilot to generate questions…"
+              onkeydown="chatKeydown(event)"></textarea>
+            <button class="btn btn-primary" onclick="sendChatMessage()" id="chatSendBtn">Send</button>
+          </div>
+        </div>
+
+        <!-- Question sidebar -->
+        <div class="question-sidebar">
+          <div class="qs-header">
+            Exam Questions
+            <span class="qs-count" id="qsCount">0</span>
+          </div>
+          <div class="qs-list" id="qsList">
+            <div class="qs-empty">No questions added yet.<br>Use the copilot to generate some.</div>
+          </div>
+          <div class="qs-footer">
+            <div style="font-size:0.78rem;color:#888" id="qsInfo"></div>
+            <button class="btn btn-success" onclick="goToStep(4)" id="continueStep3Btn" disabled>
+              Continue to Moderation →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: Moderation Form ────────────────────────────────────── -->
+    <div class="step-view" id="view4">
+      <div class="card">
+        <div class="card-title">Step 4 — Moderation Form (CLO/PLO Mapping)</div>
+        <div class="card-desc">
+          Review your curated questions with CLO/PLO mapping, then download the
+          completed AARO-FM-030 moderation form.
+        </div>
+
+        <div id="alert4" class="alert"></div>
+
+        <table class="mod-table" id="modTable">
+          <thead>
+            <tr>
+              <th style="width:40px">No.</th>
+              <th>Question</th>
+              <th style="width:80px">CLO</th>
+              <th style="width:80px">PLO</th>
+              <th style="width:70px">Marks</th>
+            </tr>
+          </thead>
+          <tbody id="modTableBody"></tbody>
+        </table>
+
+        <div id="modEmptyMsg" style="text-align:center;color:#aaa;padding:40px;font-size:0.88rem">
+          No questions in this session. Go back to Step 3.
+        </div>
+
+        <div class="step-nav-btns" style="margin-top:24px">
+          <button class="btn btn-outline" onclick="goToStep(3)">← Back</button>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-outline" onclick="downloadModerationForm()">
+              ⬇ Download AARO-FM-030
+            </button>
+            <button class="btn btn-primary" onclick="goToStep(5)">
+              Continue to Format →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 5: Format Exam Paper ──────────────────────────────────── -->
+    <div class="step-view" id="view5">
+      <div class="card">
+        <div class="card-title">Step 5 — Format Exam Paper</div>
+        <div class="card-desc">
+          Upload your exam draft (.docx) to apply Southern University College formatting rules.
+          The AI validator checks numbering, spacing, marks notation, and indentation.
+        </div>
+
+        <div class="upload-area" id="uploadArea5"
+             onclick="document.getElementById('fileInput5').click()"
+             ondragover="handleDragOver(event,'uploadArea5')"
+             ondragleave="handleDragLeave(event,'uploadArea5')"
+             ondrop="handleDrop(event,'fileInput5','uploadArea5')">
+          <div class="upload-icon">📝</div>
+          <div class="upload-label">Click to upload exam draft</div>
+          <div class="upload-sub">Accepts .docx only</div>
+          <div id="fileName5" style="margin-top:8px;font-size:0.8rem;color:#0057b8;font-weight:600"></div>
+        </div>
+        <input type="file" class="upload-file-input" id="fileInput5"
+               accept=".docx"
+               onchange="onFileSelect(this,'fileName5')">
+
+        <div id="alert5" class="alert"></div>
+
+        <div class="step-nav-btns">
+          <button class="btn btn-outline" onclick="goToStep(4)">← Back</button>
+          <button class="btn btn-primary" onclick="submitStep5()">
+            Format &amp; Validate →
+          </button>
+        </div>
+      </div>
+
+      <!-- Result card -->
+      <div class="card" id="formatResult" style="display:none">
+        <div class="card-title" style="margin-bottom:16px">Formatting Complete</div>
+        <div id="scoreBadge" class="score-badge"></div>
+        <div id="fixCounts" style="font-size:0.85rem;color:#555;margin-bottom:16px"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a id="downloadFormattedBtn" class="btn btn-success" target="_blank">
+            ⬇ Download Formatted Exam
+          </a>
+          <a id="viewDiffBtn" class="btn btn-outline" target="_blank">
+            🔍 View Diff Report
+          </a>
+        </div>
+        <iframe class="diff-frame" id="diffFrame" style="display:none"></iframe>
+      </div>
+    </div>
+
+  </main>
+</div>
 
 <script>
-/* ── State ────────────────────────────────────────────────────────────────── */
-let selectedFile = null;
+// ── State ──────────────────────────────────────────────────────────────────
+const API_BASE = '';  // same origin via Azure Functions proxy
+let sessionId = localStorage.getItem('examops_session_id') || null;
+let currentStep = 1;
+let completedSteps = new Set();
+let examQuestions = [];  // [{text, clo, plo, marks}]
+let materialsCount = 0;
 
-const API_BASE = '';   // same origin when served by /api/web
+// ── Session helpers ────────────────────────────────────────────────────────
+function getHeaders(extra = {}) {
+  const h = { 'Content-Type': 'application/json', ...extra };
+  if (sessionId) h['X-Session-ID'] = sessionId;
+  return h;
+}
 
-/* ── DOM refs ─────────────────────────────────────────────────────────────── */
-const dropZone        = document.getElementById('drop-zone');
-const fileInput       = document.getElementById('file-input');
-const fileSelected    = document.getElementById('file-selected');
-const fileNameDisplay = document.getElementById('file-name-display');
-const submitBtn       = document.getElementById('submit-btn');
-const errorBox        = document.getElementById('error-box');
-const errorMsg        = document.getElementById('error-msg');
-const uploadCard      = document.getElementById('upload-card');
-const progressCard    = document.getElementById('progress-card');
-const resultsCard     = document.getElementById('results-card');
+function setSession(id) {
+  sessionId = id;
+  localStorage.setItem('examops_session_id', id);
+}
 
-/* ── Drag-drop ────────────────────────────────────────────────────────────── */
-dropZone.addEventListener('dragover', (e) => {
+// ── Step navigation ────────────────────────────────────────────────────────
+function goToStep(n) {
+  const item = document.querySelector(`[data-step="${n}"]`);
+  if (item && item.classList.contains('locked') && !completedSteps.has(n - 1) && n > 1) return;
+
+  currentStep = n;
+  document.querySelectorAll('.step-view').forEach(v => v.classList.remove('active'));
+  document.getElementById(`view${n}`).classList.add('active');
+
+  document.querySelectorAll('.step-item').forEach(i => i.classList.remove('active'));
+  document.querySelector(`[data-step="${n}"]`).classList.add('active');
+
+  if (n === 4) renderModerationTable();
+}
+
+function unlockStep(n) {
+  completedSteps.add(n);
+  const item = document.querySelector(`[data-step="${n + 1}"]`);
+  if (item) item.classList.remove('locked');
+  const dot = document.getElementById(`dot${n}`);
+  if (dot) {
+    dot.style.background = '#16a34a';
+    dot.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
+  }
+}
+
+// ── Drag & drop helpers ────────────────────────────────────────────────────
+function handleDragOver(e, areaId) {
   e.preventDefault();
-  dropZone.classList.add('drag-over');
-});
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-dropZone.addEventListener('drop', (e) => {
+  document.getElementById(areaId).classList.add('dragover');
+}
+function handleDragLeave(e, areaId) {
+  document.getElementById(areaId).classList.remove('dragover');
+}
+function handleDrop(e, inputId, areaId) {
   e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  const f = e.dataTransfer.files[0];
-  if (f) handleFileSelect(f);
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files[0]) handleFileSelect(fileInput.files[0]);
-});
+  document.getElementById(areaId).classList.remove('dragover');
+  const input = document.getElementById(inputId);
+  if (e.dataTransfer.files.length) {
+    const dt = new DataTransfer();
+    Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+  }
+}
+function onFileSelect(input, labelId) {
+  const names = Array.from(input.files).map(f => f.name).join(', ');
+  document.getElementById(labelId).textContent = names || '';
+}
 
-function handleFileSelect(f) {
-  if (!f.name.toLowerCase().endsWith('.docx')) {
-    showError('Only .docx files are supported. Please select a Word document.');
+// ── Alert helpers ──────────────────────────────────────────────────────────
+function showAlert(id, msg, type = 'info') {
+  const el = document.getElementById(id);
+  el.className = `alert alert-${type} show`;
+  el.innerHTML = msg;
+}
+function clearAlert(id) {
+  const el = document.getElementById(id);
+  el.className = 'alert';
+  el.innerHTML = '';
+}
+
+// ── STEP 1: Upload Syllabus ────────────────────────────────────────────────
+async function submitStep1() {
+  clearAlert('alert1');
+  const fileInput = document.getElementById('fileInput1');
+  const spUrl = document.getElementById('spUrl1').value.trim();
+
+  if (!fileInput.files.length && !spUrl) {
+    showAlert('alert1', '⚠ Please upload a file or paste a SharePoint URL.', 'error');
     return;
   }
-  selectedFile = f;
-  fileNameDisplay.textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
-  fileSelected.classList.add('visible');
-  dropZone.classList.add('has-file');
-  submitBtn.disabled = false;
-  hideError();
-}
 
-/* ── Submit ───────────────────────────────────────────────────────────────── */
-submitBtn.addEventListener('click', startFormatting);
-
-async function startFormatting() {
-  if (!selectedFile) return;
-  hideError();
-  showProgress();
-
-  const userId = document.getElementById('user-id-input').value.trim() || 'web-user';
-  const formData = new FormData();
-  formData.append('file', selectedFile, selectedFile.name);
-  formData.append('user_id', userId);
-
-  // Simulate step progression while the real call runs
-  const stepTimings = [500, 2000, 4000, 6500, 9000];
-  for (let i = 1; i <= 5; i++) {
-    setTimeout(() => advanceStep(i), stepTimings[i - 1]);
-  }
+  showAlert('alert1', '<span class="spinner"></span>Extracting CLOs & PLOs…', 'info');
 
   try {
-    const endpoint = '/api/format-exam';
-    const resp = await fetch(endpoint, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const data = await resp.json().catch(() => ({ error: 'Invalid response from server.' }));
-
-    if (!resp.ok || data.error) {
-      throw new Error(data.error || `Server error (HTTP ${resp.status})`);
+    let res;
+    if (fileInput.files.length) {
+      const form = new FormData();
+      form.append('file', fileInput.files[0]);
+      if (sessionId) form.append('session_id', sessionId);
+      res = await fetch(`${API_BASE}/api/upload-syllabus`, {
+        method: 'POST',
+        headers: sessionId ? { 'X-Session-ID': sessionId } : {},
+        body: form,
+      });
+    } else {
+      const form = new FormData();
+      form.append('sharepoint_url', spUrl);
+      if (sessionId) form.append('session_id', sessionId);
+      res = await fetch(`${API_BASE}/api/upload-syllabus`, {
+        method: 'POST',
+        headers: sessionId ? { 'X-Session-ID': sessionId } : {},
+        body: form,
+      });
     }
 
-    advanceStep(6);
-    setTimeout(() => showResults(data), 800);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+
+    setSession(data.session_id);
+    renderCloResult(data.clo_list || [], data.plo_list || []);
+    clearAlert('alert1');
+    unlockStep(1);
+
   } catch (err) {
-    showUpload();
-    showError(err.message || 'An unexpected error occurred. Please try again.');
+    showAlert('alert1', `❌ ${err.message}`, 'error');
   }
 }
 
-/* ── Progress helpers ─────────────────────────────────────────────────────── */
-const stepLabels = [
-  'Uploading document…',
-  'Retrieving formatting template…',
-  'Applying formatting rules (Layer 1)…',
-  'Running LLM compliance validation (Layer 2)…',
-  'Generating diff report…',
-  'Processing complete!',
-];
+function renderCloResult(clos, plos) {
+  const box = document.getElementById('cloResult');
+  box.style.display = '';
 
-function advanceStep(n) {
-  for (let i = 1; i <= 6; i++) {
-    const el = document.getElementById('step-' + i);
-    el.classList.remove('active', 'done');
-    if (i < n) el.classList.add('done');
-    if (i === n) el.classList.add('active');
-  }
-  const pct = Math.round((n / 6) * 100);
-  document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('progress-status').textContent = stepLabels[n - 1] || '';
+  const cloList = document.getElementById('cloList');
+  cloList.innerHTML = clos.length
+    ? clos.map(c => `<span class="pill">${escHtml(c)}</span>`).join('')
+    : '<span style="color:#aaa;font-size:0.8rem">No CLOs extracted</span>';
+
+  const ploList = document.getElementById('ploList');
+  ploList.innerHTML = plos.length
+    ? plos.map(p => `<span class="pill plo">${escHtml(p)}</span>`).join('')
+    : '<span style="color:#aaa;font-size:0.8rem">No PLOs found</span>';
 }
 
-/* ── Results ──────────────────────────────────────────────────────────────── */
-function showResults(data) {
-  progressCard.classList.remove('visible');
-  resultsCard.classList.add('visible');
+// ── STEP 2: Upload Materials ───────────────────────────────────────────────
+async function submitStep2() {
+  clearAlert('alert2');
+  const fileInput = document.getElementById('fileInput2');
+  if (!fileInput.files.length) {
+    showAlert('alert2', '⚠ Please select at least one file.', 'error');
+    return;
+  }
 
-  // Status badge
-  const status = data.status || 'unknown';
-  const badgeEl = document.getElementById('status-badge-wrap');
-  const icon = status === 'success' ? '✅' : status === 'partial' ? '⚠️' : '❌';
-  const label = status === 'partial' ? 'Partial (Rule-Based Only)' : status.charAt(0).toUpperCase() + status.slice(1);
-  badgeEl.innerHTML = `<span class="status-badge ${status}">${icon} ${label}</span>`;
+  showAlert('alert2', '<span class="spinner"></span>Uploading and indexing…', 'info');
 
-  // Score
+  let uploadedCount = 0;
+  for (const file of fileInput.files) {
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await fetch(`${API_BASE}/api/upload-materials`, {
+        method: 'POST',
+        headers: sessionId ? { 'X-Session-ID': sessionId } : {},
+        body: form,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        uploadedCount++;
+        materialsCount = data.materials_count || uploadedCount;
+      }
+    } catch (e) {
+      console.warn('Upload failed for', file.name, e);
+    }
+  }
+
+  clearAlert('alert2');
+  document.getElementById('materialsCount').textContent = materialsCount;
+  document.getElementById('materialsUploaded').style.display = '';
+  showAlert('alert2', `✅ ${uploadedCount} file(s) uploaded and indexed.`, 'success');
+  unlockStep(2);
+}
+
+async function submitStep2Sp() {
+  clearAlert('alert2');
+  const spUrl = document.getElementById('spUrl2').value.trim();
+  if (!spUrl) {
+    showAlert('alert2', '⚠ Paste a SharePoint URL.', 'error');
+    return;
+  }
+  showAlert('alert2', '<span class="spinner"></span>Downloading from SharePoint…', 'info');
+
+  const form = new FormData();
+  form.append('sharepoint_url', spUrl);
+  try {
+    const res = await fetch(`${API_BASE}/api/upload-materials`, {
+      method: 'POST',
+      headers: sessionId ? { 'X-Session-ID': sessionId } : {},
+      body: form,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+
+    materialsCount = data.materials_count || 1;
+    document.getElementById('materialsCount').textContent = materialsCount;
+    document.getElementById('materialsUploaded').style.display = '';
+    showAlert('alert2', '✅ Indexed from SharePoint.', 'success');
+    unlockStep(2);
+  } catch (err) {
+    showAlert('alert2', `❌ ${err.message}`, 'error');
+  }
+}
+
+// ── STEP 3: Copilot (SSE streaming) ───────────────────────────────────────
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  input.value = '';
+  appendChatMsg(msg, 'user');
+
+  const btn = document.getElementById('chatSendBtn');
+  btn.disabled = true;
+
+  const asstEl = appendChatMsg('', 'assistant streaming');
+  let fullText = '';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/chat`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ session_id: sessionId, message: msg }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || res.statusText);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6);
+        if (payload === '[DONE]') break;
+        try {
+          const token = JSON.parse(payload);
+          fullText += token;
+          asstEl.querySelector('.msg-text').textContent = fullText;
+          scrollChatToBottom();
+        } catch (e) { /* ignore parse errors */ }
+      }
+    }
+
+    asstEl.classList.remove('streaming');
+
+    // Parse suggestion block for "Add to Exam" button
+    let suggestion = null;
+    if (fullText.includes('```json')) {
+      try {
+        const jsonStr = fullText.split('```json')[1].split('```')[0].trim();
+        suggestion = JSON.parse(jsonStr);
+      } catch (e) { /* ignore */ }
+    }
+
+    if (suggestion && suggestion.question_text) {
+      const addWrap = document.createElement('div');
+      addWrap.className = 'add-btn-wrap';
+      const addBtn = document.createElement('button');
+      addBtn.className = 'btn-add-exam';
+      addBtn.textContent = '+ Add to Exam';
+      addBtn.onclick = () => addQuestionToExam(suggestion, addBtn);
+      addWrap.appendChild(addBtn);
+      asstEl.appendChild(addWrap);
+    }
+
+  } catch (err) {
+    asstEl.querySelector('.msg-text').textContent = `Error: ${err.message}`;
+  }
+
+  btn.disabled = false;
+  scrollChatToBottom();
+}
+
+function appendChatMsg(text, cssClass) {
+  const messages = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${cssClass}`;
+  const textEl = document.createElement('span');
+  textEl.className = 'msg-text';
+  textEl.textContent = text;
+  div.appendChild(textEl);
+  messages.appendChild(div);
+  scrollChatToBottom();
+  return div;
+}
+
+function scrollChatToBottom() {
+  const el = document.getElementById('chatMessages');
+  el.scrollTop = el.scrollHeight;
+}
+
+function addQuestionToExam(suggestion, btn) {
+  const q = {
+    text: suggestion.question_text || '',
+    clo: suggestion.suggested_clo || '',
+    plo: '',
+    marks: suggestion.suggested_marks || '',
+  };
+  examQuestions.push(q);
+  updateQuestionSidebar();
+  btn.textContent = '✅ Added';
+  btn.disabled = true;
+  unlockStep(3);
+}
+
+function updateQuestionSidebar() {
+  const list = document.getElementById('qsList');
+  const count = document.getElementById('qsCount');
+  count.textContent = examQuestions.length;
+
+  if (!examQuestions.length) {
+    list.innerHTML = '<div class="qs-empty">No questions added yet.<br>Use the copilot to generate some.</div>';
+    document.getElementById('continueStep3Btn').disabled = true;
+    return;
+  }
+
+  list.innerHTML = examQuestions.map((q, i) => `
+    <div class="qs-item">
+      <div class="qs-item-text">${escHtml(q.text.slice(0, 120))}${q.text.length > 120 ? '…' : ''}</div>
+      <div class="qs-item-meta">${q.clo ? `CLO: ${escHtml(q.clo)}` : ''} ${q.marks ? `| ${q.marks} marks` : ''}</div>
+      <button class="qs-item-remove" onclick="removeQuestion(${i})">✕ Remove</button>
+    </div>
+  `).join('');
+
+  document.getElementById('continueStep3Btn').disabled = false;
+}
+
+function removeQuestion(i) {
+  examQuestions.splice(i, 1);
+  updateQuestionSidebar();
+}
+
+// ── STEP 4: Moderation Form ────────────────────────────────────────────────
+function renderModerationTable() {
+  const tbody = document.getElementById('modTableBody');
+  const emptyMsg = document.getElementById('modEmptyMsg');
+
+  if (!examQuestions.length) {
+    tbody.innerHTML = '';
+    emptyMsg.style.display = '';
+    return;
+  }
+  emptyMsg.style.display = 'none';
+
+  tbody.innerHTML = examQuestions.map((q, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${escHtml(q.text)}</td>
+      <td>${escHtml(q.clo)}</td>
+      <td>${escHtml(q.plo)}</td>
+      <td>${escHtml(String(q.marks))}</td>
+    </tr>
+  `).join('');
+}
+
+async function downloadModerationForm() {
+  if (!sessionId) {
+    showAlert('alert4', '⚠ No active session.', 'error');
+    return;
+  }
+
+  // First push questions to session via export endpoint, then request form
+  showAlert('alert4', '<span class="spinner"></span>Generating AARO-FM-030…', 'info');
+
+  try {
+    // Save questions to session
+    await pushQuestionsToSession();
+
+    const res = await fetch(`${API_BASE}/api/fill-moderation-form`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+
+    clearAlert('alert4');
+    window.open(data.download_url, '_blank');
+  } catch (err) {
+    showAlert('alert4', `❌ ${err.message}`, 'error');
+  }
+}
+
+async function pushQuestionsToSession() {
+  // We use export-questions as a session-sync mechanism
+  if (!examQuestions.length) return;
+  try {
+    await fetch(`${API_BASE}/api/export-questions`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ session_id: sessionId, questions: examQuestions }),
+    });
+  } catch (e) { /* non-fatal */ }
+}
+
+// ── STEP 5: Format Exam ────────────────────────────────────────────────────
+async function submitStep5() {
+  clearAlert('alert5');
+  const fileInput = document.getElementById('fileInput5');
+  if (!fileInput.files.length) {
+    showAlert('alert5', '⚠ Please upload a .docx exam draft.', 'error');
+    return;
+  }
+
+  showAlert('alert5', '<span class="spinner"></span>Formatting exam paper…', 'info');
+
+  const form = new FormData();
+  form.append('file', fileInput.files[0]);
+  form.append('user_id', sessionId || 'anonymous');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/format-exam`, {
+      method: 'POST',
+      headers: sessionId ? { 'X-Session-ID': sessionId } : {},
+      body: form,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+
+    clearAlert('alert5');
+    renderFormatResult(data);
+    unlockStep(5);
+
+  } catch (err) {
+    showAlert('alert5', `❌ ${err.message}`, 'error');
+  }
+}
+
+function renderFormatResult(data) {
   const score = data.compliance_score;
-  const scoreEl = document.getElementById('score-number');
-  scoreEl.textContent = score !== null && score !== undefined ? score.toFixed(1) + '%' : 'N/A';
+  const badge = document.getElementById('scoreBadge');
+  badge.className = 'score-badge' + (score >= 85 ? '' : score >= 60 ? ' warn' : ' danger');
+  badge.innerHTML = `Compliance Score: <strong>${score != null ? score + '%' : 'N/A'}</strong>`;
 
-  // Category grid
-  const categories = [
-    { label: 'Numbering Fixes', key: 'numbering_fixes' },
-    { label: 'Spacing Fixes',   key: 'spacing_fixes' },
-    { label: 'Marks Fixes',     key: 'mark_formatting_fixes' },
-    { label: 'Indent Fixes',    key: 'indentation_fixes' },
-  ];
-  const stats = data.stats || {};
-  const grid = document.getElementById('category-grid');
-  grid.innerHTML = categories.map(c => {
-    const val = stats[c.key] ?? '—';
-    const isZero = val === 0 || val === '—';
-    return `<div class="category-item">
-      <span class="cat-name">${c.label}</span>
-      <span class="cat-val ${isZero ? 'zero' : ''}">${val}</span>
-    </div>`;
-  }).join('');
+  const fixes = data.summary || {};
+  const fixEl = document.getElementById('fixCounts');
+  const parts = [];
+  if (fixes.numbering_fixes) parts.push(`${fixes.numbering_fixes} numbering fix(es)`);
+  if (fixes.spacing_fixes) parts.push(`${fixes.spacing_fixes} spacing fix(es)`);
+  if (fixes.formatting_fixes) parts.push(`${fixes.formatting_fixes} formatting fix(es)`);
+  fixEl.textContent = parts.join('  ·  ') || 'No issues found';
 
-  // Download buttons
-  const dlRow = document.getElementById('download-row');
-  dlRow.innerHTML = '';
   if (data.formatted_url) {
-    const a = document.createElement('a');
-    a.href = data.formatted_url;
-    a.className = 'btn-secondary';
-    a.download = '';
-    a.innerHTML = '⬇️ Download Formatted .docx';
-    dlRow.appendChild(a);
+    document.getElementById('downloadFormattedBtn').href = data.formatted_url;
+    document.getElementById('downloadFormattedBtn').style.display = '';
   }
   if (data.diff_url) {
-    const a = document.createElement('a');
-    a.href = data.diff_url;
-    a.className = 'btn-secondary';
-    a.download = '';
-    a.target = '_blank';
-    a.rel = 'noopener';
-    a.innerHTML = '📋 Download Diff Report';
-    dlRow.appendChild(a);
-  }
-  if (data.onedrive_link) {
-    const a = document.createElement('a');
-    a.href = data.onedrive_link;
-    a.className = 'btn-secondary';
-    a.target = '_blank';
-    a.rel = 'noopener';
-    a.innerHTML = '☁️ Open in OneDrive';
-    dlRow.appendChild(a);
+    document.getElementById('viewDiffBtn').href = data.diff_url;
+    document.getElementById('viewDiffBtn').style.display = '';
+    const frame = document.getElementById('diffFrame');
+    frame.src = data.diff_url;
+    frame.style.display = '';
   }
 
-  // Inline diff
-  if (data.diff_html) {
-    const diffSection = document.getElementById('diff-section');
-    diffSection.style.display = 'block';
-    const iframe = document.getElementById('diff-frame');
-    const blob = new Blob([data.diff_html], { type: 'text/html' });
-    iframe.src = URL.createObjectURL(blob);
-    iframe.onload = () => {
-      try {
-        const h = iframe.contentDocument.body.scrollHeight;
-        iframe.style.height = Math.max(h + 40, 420) + 'px';
-      } catch (_) {}
-    };
+  document.getElementById('formatResult').style.display = '';
+}
+
+// ── Utility ────────────────────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+(function init() {
+  // Restore session if exists
+  if (sessionId) {
+    // If we have a session, allow navigating to step 1 (start fresh or continue)
+    unlockStep(1);
   }
-}
-
-/* ── UI state helpers ─────────────────────────────────────────────────────── */
-function showProgress() {
-  uploadCard.style.display = 'none';
-  progressCard.classList.add('visible');
-  resultsCard.classList.remove('visible');
-  advanceStep(1);
-}
-
-function showUpload() {
-  uploadCard.style.display = '';
-  progressCard.classList.remove('visible');
-  resultsCard.classList.remove('visible');
-}
-
-function showError(msg) {
-  errorBox.classList.add('visible');
-  errorMsg.textContent = msg;
-}
-
-function hideError() {
-  errorBox.classList.remove('visible');
-}
-
-function resetUI() {
-  selectedFile = null;
-  fileInput.value = '';
-  fileSelected.classList.remove('visible');
-  dropZone.classList.remove('has-file');
-  submitBtn.disabled = true;
-  document.getElementById('diff-section').style.display = 'none';
-  hideError();
-  showUpload();
-}
+})();
 </script>
-
 </body>
 </html>
