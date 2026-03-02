@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
+extend-select = ["E", "F", "W", "I"]
+exclude = ["__pycache__", "build", "dist", ".venv", "venv"]

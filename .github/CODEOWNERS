@@ -1,0 +1,30 @@
+# Path-specific code owners. Keep entries specific to areas of ownership.
+
+# Agents
+src/agents/coordinator_agent/ @lerlerchan
+src/agents/formatting_engine/ @lerlerchan @bob
+src/agents/file_handler_agent/ @bob
+src/agents/question_copilot_agent/ @alice
+src/agents/syllabus_agent/ @alice
+src/agents/diff_generator/ @bob
+
+# Functions (Azure Functions handlers)
+src/functions/ @carol @bob
+
+# MCP server and tooling
+src/mcp/ @carol
+
+# Session, utils, and core libraries
+src/session/ @lerlerchan
+src/utils/ @alice
+
+# Tests and CI
+tests/ @alice @bob
+.github/workflows/ @lerlerchan @carol
+
+# Docs and tasks
+tasks/ @lerlerchan
+CLAUDE.md @lerlerchan
+
+# Fallback owners for everything else
+* @lerlerchan @alice @bob @carol
