@@ -23,6 +23,15 @@ async function attachFakeDocx(page) {
   });
 }
 
+/** Attach a minimal fake material file to #fileInput2. */
+async function attachFakeMaterial(page) {
+  await page.locator('#fileInput2').setInputFiles({
+    name: 'notes.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('sample material'),
+  });
+}
+
 /** Unlock steps 1 & 2 and navigate to Step 3. */
 async function gotoStep3(page) {
   await page.goto(WIZARD_URL);
@@ -148,6 +157,43 @@ test.describe('Step navigation', () => {
     // Step 2 should no longer have the locked class
     const step2 = page.locator('.step-item[data-step="2"]');
     await expect(step2).not.toHaveClass(/locked/);
+  });
+
+  test('teacher can progress from Step 1 to Step 3 after successful uploads', async ({ page }) => {
+    await page.goto(WIZARD_URL);
+
+    await page.route('**/api/upload-syllabus', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          session_id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+          clo_list: ['CLO1'],
+          plo_list: ['PLO1'],
+        }),
+      })
+    );
+    await page.route('**/api/upload-materials', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ session_id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', materials_count: 1 }),
+      })
+    );
+
+    await attachFakeDocx(page);
+    await page.locator('button', { hasText: /Extract CLOs/i }).click();
+    await expect(page.locator('#cloResult')).toBeVisible({ timeout: 8_000 });
+    await page.locator('button', { hasText: /Continue to Step 2/i }).click();
+    await expect(page.locator('#view2')).toHaveClass(/active/);
+
+    await attachFakeMaterial(page);
+    await page.locator('button', { hasText: /Index Materials/i }).click();
+    await expect(page.locator('#materialsUploaded')).toBeVisible({ timeout: 8_000 });
+
+    await page.locator('.step-item[data-step="3"]').click();
+    await expect(page.locator('#view3')).toHaveClass(/active/);
+    await expect(page.locator('#chatInput')).toBeVisible();
   });
 });
 

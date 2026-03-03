@@ -70,6 +70,15 @@ The HTTP trigger will be available at `http://localhost:7071/api/format_exam`.
 func azure functionapp publish examops-functions
 ```
 
+For GitHub-based deployment, `.github/workflows/deploy.yml` runs:
+- `pytest` on every PR/push to `main`
+- Azure Functions deployment on push to `main`
+- Post-deploy Playwright teacher-flow tests against `https://<AZURE_FUNCTIONAPP_NAME>.azurewebsites.net/api/web` (blocking)
+
+Required GitHub configuration:
+- Repository variable: `AZURE_FUNCTIONAPP_NAME`
+- Repository secret: `AZURE_CREDENTIALS`
+
 ---
 
 ## Run Teams Bot

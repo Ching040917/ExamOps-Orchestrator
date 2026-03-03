@@ -125,6 +125,31 @@ jobs:
 
           echo "All smoke tests passed."
 
+      - name: Set up Node.js for Playwright
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Playwright dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright teacher-flow tests
+        env:
+          E2E_BASE_URL: https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/web
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+
       - name: Azure logout
         if: always()
         run: az logout
