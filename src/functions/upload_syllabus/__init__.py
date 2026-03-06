@@ -11,7 +11,6 @@ Returns: {session_id, clo_list, plo_list}
 import json
 import logging
 import os
-import uuid
 
 import azure.functions as func
 

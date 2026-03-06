@@ -70,8 +70,6 @@ class ModerationFormAgent:
     async def _build_document(self, session):
         """Build the AARO-FM-030 document from session data."""
         from docx import Document
-        from docx.shared import Pt, Cm
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
 
         # Try to load the template from Blob Storage
         doc = await self._load_template()

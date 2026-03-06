@@ -103,7 +103,6 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
 def _build_questions_doc(session):
     """Build a .docx listing all curated exam questions."""
     from docx import Document
-    from docx.shared import Pt
 
     doc = Document()
     doc.add_heading("Exam Questions Export", level=1)

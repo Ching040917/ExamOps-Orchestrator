@@ -11,7 +11,7 @@ import uuid
 
 import requests
 from botbuilder.core import ActivityHandler, MessageFactory, TurnContext
-from botbuilder.schema import Activity, ActivityTypes, Attachment
+from botbuilder.schema import Activity, Attachment
 
 logger = logging.getLogger(__name__)
 

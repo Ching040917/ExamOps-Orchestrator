@@ -6,7 +6,6 @@ Auth level is anonymous so users can access the UI without a function key.
 """
 
 import logging
-import os
 from pathlib import Path
 
 import azure.functions as func

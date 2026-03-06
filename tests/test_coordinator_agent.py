@@ -10,7 +10,7 @@ Tests cover:
 """
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 from docx import Document
 
 from src.agents.coordinator_agent.coordinator_agent import CoordinatorAgent, JobState

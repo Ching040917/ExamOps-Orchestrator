@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 def _build_server():
     """Build and return the MCP server instance."""
     from mcp.server import Server
-    from mcp.server.models import InitializationOptions
     import mcp.types as types
 
     server = Server("examops-orchestrator")

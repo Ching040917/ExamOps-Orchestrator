@@ -18,7 +18,6 @@ sequential chain so the pipeline never silently drops a job.
 """
 
 import logging
-import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional

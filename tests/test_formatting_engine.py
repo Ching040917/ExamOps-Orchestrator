@@ -11,11 +11,9 @@ Tests cover:
 """
 
 import pytest
-import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 from docx import Document
 from docx.document import Document as DocxDocument
-from docx.oxml.ns import qn
 from lxml import etree
 
 from src.agents.formatting_engine.formatting_engine import (
@@ -40,7 +38,7 @@ def _inject_omath(para) -> None:
     """Inject a fake m:oMath element into the first run of para."""
     run = para.runs[0] if para.runs else para.add_run("x")
     omath_ns = "http://schemas.openxmlformats.org/officeDocument/2006/math"
-    omath_elem = etree.SubElement(run._element, f"{{{omath_ns}}}oMath")
+    etree.SubElement(run._element, f"{{{omath_ns}}}oMath")
 
 
 # ── RuleBasedFormatter._fix_numbering ────────────────────────────────────────

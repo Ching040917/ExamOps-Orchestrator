@@ -8,10 +8,9 @@ Tests cover:
   - _extract_text_with_formatting: returns newline-joined paragraph text
 """
 
-import pytest
 from docx import Document
 
-from src.agents.diff_generator.diff_generator import DiffGeneratorAgent, _DIFF_CSS
+from src.agents.diff_generator.diff_generator import DiffGeneratorAgent
 
 
 def _make_doc(*paragraphs: str) -> Document:

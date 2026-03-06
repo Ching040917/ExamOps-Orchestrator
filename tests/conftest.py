@@ -2,7 +2,6 @@
 Shared pytest fixtures for ExamOps tests.
 """
 
-import io
 import pytest
 from docx import Document
 

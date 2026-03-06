@@ -14,7 +14,7 @@ import re
 from typing import Optional
 
 from docx import Document
-from docx.shared import Cm, Pt
+from docx.shared import Cm
 from docx.oxml.ns import qn
 
 logger = logging.getLogger(__name__)

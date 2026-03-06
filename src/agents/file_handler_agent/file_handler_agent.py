@@ -17,7 +17,6 @@ import io
 import os
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional
 
 from docx import Document
 
