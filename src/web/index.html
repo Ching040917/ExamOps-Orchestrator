@@ -319,6 +319,49 @@
       flex-direction: column;
       overflow: hidden;
     }
+    .teacher-agent-box {
+      margin: 12px;
+      border: 1px solid #e6ecf7;
+      background: #f8fbff;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .teacher-agent-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #003087;
+      margin-bottom: 8px;
+    }
+    .teacher-agent-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .teacher-agent-input {
+      flex: 1;
+      border: 1px solid #c8d4e8;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.78rem;
+      font-family: inherit;
+    }
+    .teacher-agent-input:focus { outline: none; border-color: #0057b8; }
+    .teacher-agent-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .teacher-agent-reply {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.76rem;
+      color: #334155;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
     .qs-header {
       padding: 16px 20px;
       border-bottom: 1px solid #f0f2f5;
@@ -667,6 +710,21 @@
 
         <!-- Question sidebar -->
         <div class="question-sidebar">
+          <div class="teacher-agent-box">
+            <div class="teacher-agent-title">🧑‍🏫 Teacher Agent</div>
+            <div class="teacher-agent-row">
+              <input
+                id="teacherAgentInput"
+                class="teacher-agent-input"
+                type="text"
+                placeholder="Ask for a quick teaching tip…">
+              <button class="btn btn-outline btn-sm" id="teacherAgentAskBtn">Ask</button>
+            </div>
+            <div class="teacher-agent-actions" id="teacherAgentActions"></div>
+            <div class="teacher-agent-reply" id="teacherAgentReply">
+              I can summarize progress, check CLO coverage, and suggest your next action.
+            </div>
+          </div>
           <div class="qs-header">
             Exam Questions
             <span class="qs-count" id="qsCount">0</span>
@@ -789,6 +847,11 @@ let currentStep = 1;
 let completedSteps = new Set();
 let examQuestions = [];  // [{text, clo, plo, marks}]
 let materialsCount = 0;
+const TEACHER_AGENT_ACTIONS = [
+  { label: 'Progress', prompt: 'Give me a progress summary' },
+  { label: 'CLO check', prompt: 'Check CLO coverage' },
+  { label: 'Next step', prompt: 'What should I do next?' },
+];
 
 // ── Session helpers ────────────────────────────────────────────────────────
 function getHeaders(extra = {}) {
@@ -1084,6 +1147,12 @@ async function sendChatMessage() {
     clearTimeout(timer);
     asstEl.classList.remove('streaming');
 
+    // Strip the JSON suggestion block from the final displayed message
+    const displayText = fullText.includes('```json')
+      ? fullText.split('```json')[0].trim()
+      : fullText.trim();
+    asstEl.querySelector('.msg-text').textContent = displayText;
+
     // Parse suggestion block for "Add to Exam" button
     let suggestion = null;
     if (fullText.includes('```json')) {
@@ -1174,6 +1243,68 @@ function updateQuestionSidebar() {
 function removeQuestion(i) {
   examQuestions.splice(i, 1);
   updateQuestionSidebar();
+}
+
+function askTeacherAgent(quickPrompt = '') {
+  const input = document.getElementById('teacherAgentInput');
+  const prompt = quickPrompt || input.value.trim();
+  if (!prompt) return;
+
+  const reply = generateTeacherAgentReply(prompt);
+  document.getElementById('teacherAgentReply').textContent = reply;
+  if (!quickPrompt) input.value = '';
+}
+
+function generateTeacherAgentReply(prompt) {
+  const p = String(prompt || '').toLowerCase();
+  const totalMarks = examQuestions.reduce((sum, q) => {
+    const n = Number.parseFloat(q.marks);
+    return Number.isFinite(n) ? sum + n : sum;
+  }, 0);
+  const uniqueClos = [...new Set(examQuestions.map(q => (q.clo || '').trim()).filter(Boolean))];
+
+  if (p.includes('progress') || p.includes('summary') || p.includes('status')) {
+    return `Current progress:\n- Materials indexed: ${materialsCount}\n- Questions curated: ${examQuestions.length}\n- Total marks drafted: ${totalMarks || 0}`;
+  }
+  if (p.includes('clo')) {
+    if (!examQuestions.length) return 'No questions yet. Generate a few questions first, then run CLO coverage check.';
+    return uniqueClos.length
+      ? `CLO coverage found: ${uniqueClos.join(', ')}.\nTip: add at least one question per CLO before moderation.`
+      : 'Questions do not include CLO labels yet. Ask Copilot with explicit CLO targets (e.g., CLO1, CLO2).';
+  }
+  if (p.includes('next') || p.includes('improve')) {
+    if (!materialsCount) return 'Next step: upload and index learning materials in Step 2 before generating questions.';
+    if (!examQuestions.length) return 'Next step: ask Copilot for 3-5 balanced questions, then add the best ones to your exam list.';
+    return 'Next step: review marks balance, then continue to Step 4 to generate the moderation form.';
+  }
+
+  return 'Tip: keep your paper balanced across CLOs and marks, then validate formatting in Step 5 before final submission.';
+}
+
+function initTeacherAgent() {
+  const input = document.getElementById('teacherAgentInput');
+  const askBtn = document.getElementById('teacherAgentAskBtn');
+  const actions = document.getElementById('teacherAgentActions');
+
+  if (!input || !askBtn || !actions) return;
+
+  actions.innerHTML = TEACHER_AGENT_ACTIONS.map(
+    a => `<button class="btn btn-outline btn-sm" data-prompt="${escHtml(a.prompt)}">${escHtml(a.label)}</button>`
+  ).join('');
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      askTeacherAgent();
+    }
+  });
+
+  askBtn.addEventListener('click', () => askTeacherAgent());
+  actions.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-prompt]');
+    if (!btn) return;
+    askTeacherAgent(btn.dataset.prompt || '');
+  });
 }
 
 // ── STEP 4: Moderation Form ────────────────────────────────────────────────
@@ -1315,6 +1446,7 @@ function escHtml(str) {
     // If we have a session, allow navigating to step 1 (start fresh or continue)
     unlockStep(1);
   }
+  initTeacherAgent();
 })();
 </script>
 </body>
