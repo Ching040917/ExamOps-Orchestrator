@@ -95,6 +95,8 @@ The bot listens on `PORT` (default `3978`). Use [ngrok](https://ngrok.com/) or a
 
 See [`claude.md`](./claude.md) for the full architecture, agent design, and decision log.
 
+![ExamOps architecture diagram](sample/diagram.png)
+
 **Agent pipeline** (all routing goes through `CoordinatorAgent`):
 
 ```
@@ -109,3 +111,14 @@ CoordinatorAgent
         │
         └─► DiffGeneratorAgent   — HTML diff + compliance stats card
 ```
+
+---
+
+## Contributors
+
+- [@lerlerchan](https://github.com/lerlerchan)
+- [@calvin139](https://github.com/calvin139)
+- [@qqrey](https://github.com/qqrey6)
+- [@Ching](https://github.com/Ching040917)
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for contribution guidelines.
