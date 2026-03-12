@@ -6,3 +6,4 @@ test-results/
 playwright-report/
 __pycache__/
 *.pyc
+src/functions/local.settings.json
